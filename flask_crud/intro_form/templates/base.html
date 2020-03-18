@@ -1,24 +1,22 @@
 {% extends 'bootstrap/base.html' %}
-{% block title %}
- My project
+{% block title %} Submit Form {% endblock %}
+
+{% block navbar %}
+    {% include '_navbar.html' %}
 {% endblock %}
+
 {% block content %}
-    {% block body %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul>
+                {% for category, message in messages %}
+                    <ul class="alert alert-{{category}}">{{message}}</ul>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+    {% block sub_block %}
     {% endblock %}
 {% endblock %}
 
 
-<!-- 
-
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>
-            My Project
-        </title>
-    </head>
-    <body>
-        {% block body %}
-        {% endblock %}
-    </body>
-</html> -->

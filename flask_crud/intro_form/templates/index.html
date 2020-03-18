@@ -1,8 +1,9 @@
-{% extends 'bootstrap/base.html' %}
-{% block body %}
+{% extends 'base.html' %}
+{% block sub_block %}
     <form method='POST'>
         Name:<input type='text' name='name' />
         Age:<input type='text' name='age' />
         <input type='submit' />
     </form>
-{% endblock%}
+    <!-- <h1>{{ session['username'] }}</h1> -->
+{% endblock %}
