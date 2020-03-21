@@ -3,7 +3,8 @@ from flask_bootstrap import Bootstrap
 from flask_mysqldb import MySQL
 import yaml
 import os
-from werkzeug.security import generate_password_hash
+from datetime import datetime
+from werkzeug.security import generate_password_hash,check_password_hash
 
 app = Flask(__name__)
 Bootstrap(app)
@@ -20,6 +21,8 @@ app.config['SECRET_KEY'] = os.urandom(24)
 
 @app.route('/')
 def index():
+    cur = mysql.connection.cursor()
+    result_blog = cur.execute("SELECT * FROM blog")
     return render_template('index.html')
 
 @app.route('/about')
@@ -52,11 +55,43 @@ def login():
     if request.method == "POST":
         user_details = request.form
         username = user_details['username']
-        
+        cur = mysql.connection.cursor()
+        user_db = cur.execute("SELECT * FROM user WHERE username=%s",([username]))
+        if user_db > 0:
+            user = cur.fetchone()
+            if check_password_hash(user['password'],user_details['password']):
+                session['login'] = True
+                session['first_name'] = user['first_name']
+                session['last_name'] = user['last_name']
+                flash(f"Welcome {session['first_name']}, you have been successfully logged in !",'success')
+            else:
+                cur.close()
+                flash("Passwords do not match.",'danger')
+                return render_template('login.html')
+        else:
+            cur.close()
+            flash('Username not found.','danger')
+            return render_template('login.html')
+        cur.close()
+        return redirect('/')
     return render_template('login.html')
 
 @app.route('/write-blog',methods=["GET","POST"])
 def write_blog():
+    if request.method == "POST":
+        blogpost = request.form
+        title = blogpost['title']
+        body = blogpost['body']
+        author = f"{session['first_name']}+{session['last_name']}"
+        session['created_on'] = datetime.utcnow()
+        cur = mysql.connection.cursor()
+        print(session['created_on'])
+        cur.execute("INSERT INTO blog(title,body,author,created_on)"\
+                    "VALUES (%s,%s,%s,%s)",(title,body,author,session['created_on']))
+        mysql.connection.commit()
+        cur.close()
+        flash("Successfully posted new blog","success")
+        return redirect('/')
     return render_template('write-blog.html')
 
 @app.route('/my-blogs')

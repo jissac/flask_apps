@@ -4,7 +4,16 @@
 Flog
 {% endblock%}
 
+
 {% block content %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+                {% for category, message in messages %}
+                    <ul class="alert alert-{{category}}">{{message}}</ul>
+                {% endfor %}
+        {% endif %}
+{% endwith %}
+
     {% block sub_content%}
     {%endblock%}
 {%endblock%}
