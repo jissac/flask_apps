@@ -1,3 +1,5 @@
+# python 3
+## Imports ##
 from flask import Flask,render_template,url_for,redirect,request,session,flash
 from flask_bootstrap import Bootstrap
 from flask_mysqldb import MySQL
@@ -6,11 +8,12 @@ import os
 from datetime import datetime
 from werkzeug.security import generate_password_hash,check_password_hash
 
+## Initialize ##
 app = Flask(__name__)
 Bootstrap(app)
 mysql = MySQL(app)
 
-# Configure db
+## Configure db ##
 db = yaml.load(open('db.yaml'))
 app.config['MYSQL_HOST'] = db['mysql_host']
 app.config['MYSQL_USER'] = db['mysql_user']
@@ -19,20 +22,35 @@ app.config['MYSQL_DB'] = db['mysql_db']
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 app.config['SECRET_KEY'] = os.urandom(24)
 
+## Endpoints ##
+
+# home page
 @app.route('/')
 def index():
     cur = mysql.connection.cursor()
     result_blog = cur.execute("SELECT * FROM blog")
+    if result_blog > 0:
+        blogs = cur.fetchall()
+        cur.close()
+        return render_template('index.html',blogs=blogs)
+    cur.close()
     return render_template('index.html')
 
 @app.route('/about')
 def about():
     return render_template('about.html')
 
+# all blogs that have been written
 @app.route('/blogs/<int:id>')
 def blogs(id):
-    return render_template('blogs.html',blog_id=id)
+    cur = mysql.connection.cursor()
+    result_blog = cur.execute("SELECT * FROM blog WHERE blog_id = {}".format(id))
+    if result_blog > 0:
+        blog = cur.fetchone()
+        return render_template('blogs.html',blog=blog)
+    return "Blog not found"
 
+# new user registration
 @app.route('/register',methods=["GET","POST"])
 def register():
     if request.method == "POST":
@@ -50,6 +68,7 @@ def register():
         return redirect('/login')
     return render_template('register.html')
 
+# login page
 @app.route('/login',methods=["GET","POST"])
 def login():
     if request.method == "POST":
@@ -76,13 +95,14 @@ def login():
         return redirect('/')
     return render_template('login.html')
 
+# write new blog
 @app.route('/write-blog',methods=["GET","POST"])
 def write_blog():
     if request.method == "POST":
         blogpost = request.form
         title = blogpost['title']
         body = blogpost['body']
-        author = f"{session['first_name']}+{session['last_name']}"
+        author = f"{session['first_name']} {session['last_name']}"
         session['created_on'] = datetime.utcnow()
         cur = mysql.connection.cursor()
         print(session['created_on'])
@@ -94,10 +114,12 @@ def write_blog():
         return redirect('/')
     return render_template('write-blog.html')
 
+# blogs written by logged-in user
 @app.route('/my-blogs')
 def my_blogs():
     return render_template('my-blogs.html')
 
+# edit a written blog
 @app.route('/edit-blog/<int:id>',methods=["GET","POST"])
 def edit_blog():
     return render_template('edit-blog.html')
