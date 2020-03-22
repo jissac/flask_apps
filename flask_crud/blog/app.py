@@ -6,12 +6,14 @@ from flask_mysqldb import MySQL
 import yaml
 import os
 from datetime import datetime
+from flask_ckeditor import CKEditor
 from werkzeug.security import generate_password_hash,check_password_hash
 
 ## Initialize ##
 app = Flask(__name__)
 Bootstrap(app)
 mysql = MySQL(app)
+CKEditor(app)
 
 ## Configure db ##
 db = yaml.load(open('db.yaml'))

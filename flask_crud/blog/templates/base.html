@@ -1,5 +1,8 @@
 {% extends 'bootstrap/base.html' %}
-
+{% block head %}
+    {{super()}}
+    {{ckeditor.load()}}
+{% endblock %}
 {% block title %}
 Flog
 {% endblock%}
